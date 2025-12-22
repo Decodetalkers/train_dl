@@ -1,6 +1,7 @@
 import numpy as np
 from typing import Literal
 
+# The network only one level
 class Perception():
     def __init__(self, num_features: int):
         self.num_features = num_features

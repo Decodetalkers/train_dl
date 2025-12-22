@@ -46,5 +46,35 @@ print('Model parameters:\n\n')
 print('  Weights: %s\n' % ppn.weights)
 print('  Bias: %s\n' % ppn.bias)
 
-tran_acc = ppn.evaluate(X_train, Y_train)
-print(tran_acc)
+train_acc = ppn.evaluate(X_train, Y_train)
+print('Train set accuracy: %.2f%%' % (train_acc*100))
+
+test_acc = ppn.evaluate(X_test, Y_test)
+print('Test set accuracy: %.2f%%' % (test_acc*100))
+
+w, b = ppn.weights, ppn.bias
+
+x0_min = -2
+x1_min = ( (-(w[0] * x0_min) - b[0])
+          / w[1] )
+
+x0_max = 2
+x1_max = ( (-(w[0] * x0_max) - b[0])
+          / w[1] )
+
+# x0*w0 + x1*w1 + b = 0
+# x1  = (-x0*w0 - b) / w1
+
+
+fig, ax = plt.subplots(1, 2, sharex=True, figsize=(7, 3))
+
+ax[0].plot([x0_min, x0_max], [x1_min, x1_max])
+ax[0].scatter(X_train[Y_train==0, 0], X_train[Y_train==0, 1], label='class 0', marker='o')
+ax[0].scatter(X_train[Y_train==1, 0], X_train[Y_train==1, 1], label='class 1', marker='s')
+
+ax[1].plot([x0_min, x0_max], [x1_min, x1_max])
+ax[1].scatter(X_test[Y_test==0, 0], X_test[Y_test==0, 1], label='class 0', marker='o')
+ax[1].scatter(X_test[Y_test==1, 0], X_test[Y_test==1, 1], label='class 1', marker='s')
+
+ax[1].legend(loc='upper left')
+plt.show()
