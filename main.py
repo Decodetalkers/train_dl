@@ -1,7 +1,7 @@
 import numpy as np
 
-x = [1,2,3,4,5]
-w = [3,4,5,6,8]
+x = [1, 2, 3, 4, 5]
+w = [3, 4, 5, 6, 8]
 
 z = sum(x_i * w_i for x_i, w_i in zip(x, w))
 

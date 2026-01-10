@@ -1,6 +1,6 @@
 import torch
 
-b = torch.tensor([1.,2.,3.])
+b = torch.tensor([1.0, 2.0, 3.0])
 
 print(b)
 print(b.dtype)
