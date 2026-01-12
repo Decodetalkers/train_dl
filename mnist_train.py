@@ -115,3 +115,9 @@ for epoch in range(num_epochs):
             % (epoch + 1, num_epochs, accuracy)
         )
         print("Time elapsed: %.2f min" % ((time.time() - start_time) / 60))
+
+features, targets = next(iter(test_loader))
+
+_, predictions = model.forward(features[:4].view(-1, 28 * 28).to(device))
+predictions = torch.argmax(predictions, dim=1)
+print("Predicted labels", predictions)
