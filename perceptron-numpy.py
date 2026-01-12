@@ -90,4 +90,3 @@ ax[1].scatter(
 
 ax[1].legend(loc="upper left")
 plt.show()
-
