@@ -1,4 +1,3 @@
-from sympy.codegen import Print
 from turtle import forward
 from torchvision import datasets
 from torchvision import transforms
@@ -59,8 +58,10 @@ optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
 torch.manual_seed(random_seed)
 
 
-def compute_accuracy(model: SoftmaxRegission, data_loader: DataLoader[datasets.MNIST]) -> float:
-    correct_pred, num_examples = torch.tensor(0, dtype=torch.int8).to(device), 0
+def compute_accuracy(
+    model: SoftmaxRegission, data_loader: DataLoader[datasets.MNIST]
+) -> float:
+    correct_pred, num_examples = torch.tensor(0, dtype=torch.int64).to(device), 0
 
     for features, targets in data_loader:
         features: torch.Tensor = features.view(-1, 28 * 28).to(device)
@@ -111,6 +112,6 @@ for epoch in range(num_epochs):
         accuracy = compute_accuracy(model, train_loader)
         print(
             "Epoch: %03d/%03d training accuracy: %.2f%%"
-            % (epoch + 1, num_epochs, compute_accuracy(model, train_loader))
+            % (epoch + 1, num_epochs, accuracy)
         )
         print("Time elapsed: %.2f min" % ((time.time() - start_time) / 60))
