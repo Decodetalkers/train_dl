@@ -137,4 +137,4 @@ features, targets = next(iter(test_loader))
 
 _, predictions = model.forward(features[:4].view(-1, 28 * 28).to(device))
 predictions = torch.argmax(predictions, dim=1)
-print(f"Predicted labels: {predictions}, targets:{targets}")
+print(f"Predicted labels: {predictions}, targets:{targets[:4]}")

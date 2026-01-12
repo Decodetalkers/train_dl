@@ -37,3 +37,12 @@ o2_ship = OwnerShipTwo(o_ship)
 o2_ship.add()
 print(f"now OwnerShip is {o_ship.value()}")
 print(f"now OwnerShip2 is {o2_ship.own.value()}")
+
+def own_ship_fun(own: int):
+    b = own
+    b += 1
+
+to_own_2 = 1
+own_ship_fun(to_own_2)
+
+print(f"to_own_2 :{to_own_2}")
