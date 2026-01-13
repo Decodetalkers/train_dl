@@ -46,7 +46,7 @@ class SoftmaxRegission(torch.nn.Module):
         super(SoftmaxRegission, self).__init__()
         self.seq = torch.nn.Sequential(
             torch.nn.Linear(num_features, hidden_layers),
-            torch.nn.Softmax(dim=1),
+            torch.nn.ReLU(),
             torch.nn.Linear(hidden_layers, num_classes),
         ).to(device)
         self.act = torch.nn.Softmax(dim=1).to(device)
