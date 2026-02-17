@@ -15,6 +15,7 @@ learning_rate = 0.1
 num_epochs = 100
 batch_size = 256
 
+# NOTE:  28 * 28 Square gray image
 num_features = 784
 num_classes = 10
 
@@ -51,6 +52,7 @@ class SoftmaxRegission(torch.nn.Module):
         ).to(device)
         self.act = torch.nn.Softmax(dim=1).to(device)
 
+    # NOTE: the size of x should be Size([x, num_features])
     def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         logits: torch.Tensor = self.seq(x)
         probas = self.act(logits)
@@ -89,7 +91,9 @@ epoch_costs: list[torch.Tensor] = []
 for epoch in range(num_epochs):
     avg_cost: torch.Tensor = torch.tensor(0.0, dtype=torch.float).to(device)
     for batch_idx, (features, targets) in enumerate(train_loader):
+        # NOTE: Size([256, 784])
         features = features.view(-1, 28 * 28).to(device)
+        # NOTE: target is 0..10
         targets = targets.to(device)
         logits, probas = model(features)
 
