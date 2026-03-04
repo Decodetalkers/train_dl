@@ -129,8 +129,8 @@ for epoch in range(num_epochs):
 
 
 plt.plot(epoch_costs)
-plt.ylabel('Avg Cross Entropy Loss\n(approximated by averaging over minibatches)')
-plt.xlabel('Epoch')
+plt.ylabel("Avg Cross Entropy Loss\n(approximated by averaging over minibatches)")
+plt.xlabel("Epoch")
 plt.show()
 
 accuracy = compute_accuracy(model, test_loader)
