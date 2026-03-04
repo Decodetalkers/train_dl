@@ -1,5 +1,5 @@
 import time
-from typing import Callable
+from collections.abc import Callable
 from pyparsing import Optional
 import numpy as np
 import torch
