@@ -1,5 +1,6 @@
 import time
 from collections.abc import Callable
+from typing import Dict, List, Tuple
 from pyparsing import Optional
 import numpy as np
 import torch
@@ -11,11 +12,15 @@ from torch.utils.data import DataLoader
 from torch import nn
 import torch.nn.functional as F
 
+import matplotlib.pyplot as plt
 
+
+# make output the same
 def set_deterministic():
     if torch.cuda.is_available():
         torch.backends.cudnn.benchmark = False
         torch.backends.cudnn.deterministic = True
+        os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
     torch.use_deterministic_algorithms(True)
 
 
@@ -31,7 +36,7 @@ def set_all_seeds(seed):
 ## SETTINGS
 #########################
 
-DEVICE = torch.device("cpu")
+DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 # Hyperparameters
 RANDOM_SEED = 42
@@ -147,8 +152,8 @@ def train_gan_v1(
     loss_fn: Callable[..., torch.Tensor] | None = None,
     logging_interval: int = 100,
     save_model: str | None = None,
-):
-    log_dict = {
+) -> Dict[str, List[int | float | torch.Tensor]]:
+    log_dict: Dict[str, List[int | float | torch.Tensor]] = {
         "train_generator_loss_per_batch": [],
         "train_discriminator_loss_per_batch": [],
         "train_discriminator_real_acc_per_batch": [],
@@ -172,9 +177,7 @@ def train_gan_v1(
             real_labels = torch.ones(batch_size, device=device)  # real label = 1
 
             # generated (fake) images
-            noise = torch.randn(
-                batch_size, latent_dim, 1, 1, device=device
-            )
+            noise = torch.randn(batch_size, latent_dim, 1, 1, device=device)
 
             # format NCHW
             fake_images = model.generator_forward(noise)
@@ -188,9 +191,7 @@ def train_gan_v1(
             optimizer_discr.zero_grad()
 
             # get discriminator loss on real images
-            discr_pred_real = model.discriminator_forward(real_images).view(
-                -1
-            )
+            discr_pred_real = model.discriminator_forward(real_images).view(-1)
 
             # Nx1 -> N
             real_loss = loss_fn(discr_pred_real, real_labels)
@@ -265,3 +266,110 @@ def train_gan_v1(
         torch.save(model.state_dict(), save_model)
 
     return log_dict
+
+
+log_dict = train_gan_v1(
+    num_epochs=NUM_EPOCHS,
+    model=model,
+    optimizer_gen=optim_gen,
+    optimizer_discr=optim_discr,
+    latent_dim=100,
+    device=DEVICE,
+    train_loader=train_loader,
+    logging_interval=100,
+    save_model="gan_mnist_01.pt",
+)
+
+
+def plot_multiple_training_losses(
+    losses_list: Tuple[List[torch.Tensor], List[torch.Tensor]],
+    num_epochs: int,
+    averaging_iterations: int = 100,
+    custom_labels_list: List[str] = [],
+):
+    for i, _ in enumerate(losses_list):
+        if not len(losses_list[i]) == len(losses_list[0]):
+            raise ValueError(
+                "All loss tensors need to have the same number of elements."
+            )
+
+    iter_per_epoch = len(losses_list[0]) // num_epochs
+
+    plt.figure()
+    ax1 = plt.subplot(1, 1, 1)
+
+    for i, minibatch_loss_tensor in enumerate(losses_list):
+        ax1.plot(
+            range(len(minibatch_loss_tensor)),
+            (minibatch_loss_tensor),
+            label=f"Minibatch Loss{custom_labels_list[i]}",
+        )
+        ax1.set_xlabel("Iterations")
+        ax1.set_ylabel("Loss")
+
+        ax1.plot(
+            np.convolve(
+                minibatch_loss_tensor,
+                np.ones(
+                    averaging_iterations,
+                )
+                / averaging_iterations,
+                mode="valid",
+            ),
+            color="black",
+        )
+
+    if len(losses_list[0]) < 1000:
+        num_losses = len(losses_list[0]) // 2
+    else:
+        num_losses = 1000
+    maxes = [np.max(losses_list[i][num_losses:]) for i, _ in enumerate(losses_list)]
+    ax1.set_ylim(0, np.max(maxes) * 1.5)
+    ax1.legend()
+
+    ###################
+    # Set second x-axis
+    ax2 = ax1.twiny()
+    newlabel = list(range(num_epochs + 1))
+
+    newpos = [e * iter_per_epoch for e in newlabel]
+
+    ax2.set_xticks(newpos[::10])
+    ax2.set_xticklabels(str(i) for i in newlabel[::10])
+
+    ax2.xaxis.set_ticks_position("bottom")
+    ax2.xaxis.set_label_position("bottom")
+    ax2.spines["bottom"].set_position(("outward", 45))
+    ax2.set_xlabel("Epochs")
+    ax2.set_xlim(ax1.get_xlim())
+    ###################
+
+    plt.tight_layout()
+
+
+plot_multiple_training_losses(
+    losses_list=(
+        log_dict["train_discriminator_loss_per_batch"],
+        log_dict["train_generator_loss_per_batch"],
+    ),  # ty:ignore[invalid-argument-type]
+    num_epochs=NUM_EPOCHS,
+    custom_labels_list=[" -- Discriminator", " -- Generator"],
+)
+
+##########################
+### VISUALIZATION
+##########################
+
+for i in range(0, NUM_EPOCHS, 5):
+    plt.figure(figsize=(8, 8))
+    plt.axis("off")
+    plt.title(f"Generated images at epoch {i}")
+    plt.imshow(np.transpose(log_dict["images_from_noise_per_epoch"][i], (1, 2, 0)))
+    plt.show()
+
+
+plt.figure(figsize=(8, 8))
+plt.axis("off")
+plt.title(f"Generated images after last epoch")
+plt.imshow(np.transpose(log_dict["images_from_noise_per_epoch"][-1], (1, 2, 0)))
+plt.show()
