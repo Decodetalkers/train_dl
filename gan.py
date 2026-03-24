@@ -13,24 +13,7 @@ from torch import nn
 import torch.nn.functional as F
 
 import matplotlib.pyplot as plt
-
-
-# make output the same
-def set_deterministic():
-    if torch.cuda.is_available():
-        torch.backends.cudnn.benchmark = False
-        torch.backends.cudnn.deterministic = True
-        os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
-    torch.use_deterministic_algorithms(True)
-
-
-def set_all_seeds(seed):
-    os.environ["PL_GLOBAL_SEED"] = str(seed)
-    random.seed(seed)
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed)
-
+from utils import set_deterministic, set_all_seeds
 
 #########################
 ## SETTINGS
@@ -46,6 +29,7 @@ DISCRIMINATOR_LEARNING_RATE = 0.0002
 NUM_EPOCHS = 100
 BATCH_SIZE = 128
 
+# Channels means grey picture
 IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_CHANNELS = 28, 28, 1
 
 # Base set
