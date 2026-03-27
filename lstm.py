@@ -10,7 +10,7 @@ torch.backends.cudnn.deterministic = True
 
 RANDOM_SEED = 123
 LEARNING_RATE = 0.005
-BATCH_SIZE: int = 128
+BATCH_SIZE: int = 4
 NUM_EPOCHS = 15
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -23,5 +23,5 @@ df = pd.read_csv("./misc/movie_data.csv")
 DataLoader = TextToVector(dataset=df, batch_size=BATCH_SIZE)
 
 for data, features in DataLoader:
-    print(features)
+    print(data)
     pass
