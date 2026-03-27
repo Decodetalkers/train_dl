@@ -23,7 +23,7 @@ DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 IMAGE_CLASSES = 10
 
 # The size of the picture
-NUM_FUTURES = 28 * 28
+NUM_FUTURES = 1 * 28 * 28
 
 train_dataset = train_dataset_fn(transforms.ToTensor())
 
