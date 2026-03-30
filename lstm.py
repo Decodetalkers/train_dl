@@ -10,7 +10,7 @@ torch.backends.cudnn.deterministic = True
 
 RANDOM_SEED = 123
 LEARNING_RATE = 0.005
-BATCH_SIZE: int = 4
+BATCH_SIZE: int = 10
 NUM_EPOCHS = 15
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -20,7 +20,7 @@ NUM_CLASSES = 2
 
 df = pd.read_csv("./misc/movie_data.csv")
 
-DATA_LOADER = TextToVector(dataset=df.head(50), batch_size=BATCH_SIZE)
+DATA_LOADER = TextToVector(dataset=df, batch_size=BATCH_SIZE)
 
 class MyLstm(torch.nn.Module):
     embendding: torch.nn.Embedding
@@ -38,8 +38,10 @@ class MyLstm(torch.nn.Module):
         self.fc = torch.nn.Linear(hidden_dim, output_dim)
 
     def forward(self, text: torch.Tensor):
+        print("size: ", text.size())
         embedded = self.embedding(text)
         _output, (hidden, _cell) = self.rnn(embedded)
+        print("hidden: ", hidden.size())
 
         hidden.squeeze_(0)
 
@@ -51,7 +53,7 @@ class MyLstm(torch.nn.Module):
 torch.manual_seed(RANDOM_SEED)
 
 model = MyLstm(
-    input_dim=DATA_LOADER.features * DATA_LOADER.features,
+    input_dim=DATA_LOADER.features,
     embendding_dim=EMBEDDING_DIM,
     hidden_dim=HIDDEN_DIM,
     output_dim=SENTIMENT_FEATURES,
@@ -79,8 +81,9 @@ start_time = time.time()
 for epoch in range(NUM_EPOCHS):
     model.train()
     for batch_idx, (data, labels) in enumerate(DATA_LOADER):
-        print(data.size())
-        logits = model(data.to(DEVICE).view(-1, DATA_LOADER.features * DATA_LOADER.features))
+        data = data.to(DEVICE).transpose_(0,1)
+        print("data: ", data.size())
+        logits = model(data)
         loss = F.cross_entropy(logits, labels.to(DEVICE))
 
         optimizer.zero_grad()
