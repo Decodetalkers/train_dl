@@ -14,12 +14,13 @@ VOCABULARYL: Dict[str, int] = {"<unk>": 0}
 
 SENTIMENT_FEATURES = 2
 
-_Data = pd.read_csv(_MISC_LIB).head(50)
+_Data = pd.read_csv(_MISC_LIB)
 
 _WordMatch = re.compile(r"[a-z\d]+")
 
 
-_MAX_WORD_LEN = 1000
+_MAX_WORD_LEN = 0
+
 
 def _vocabulary_init():
     index = 1
@@ -31,10 +32,9 @@ def _vocabulary_init():
             if word.lower() not in VOCABULARYL and _WordMatch.fullmatch(word.lower()):
                 VOCABULARYL[word.lower()] = index
                 index += 1
-                len += 1
+            len += 1
         _MAX_WORD_LEN = max(_MAX_WORD_LEN, len)
     VOCABULARYL["<pad>"] = index
-
 
 
 _vocabulary_init()
@@ -48,7 +48,7 @@ class TextToVector:
     labels: List[int] = []
     current: int
     max_len: int
-    features =  _MAX_WORD_LEN
+    features = _MAX_WORD_LEN
     _iter = Iterable[Tuple[Hashable, pd.Series]]
 
     def __init__(self, dataset: pd.DataFrame, batch_size: int):
@@ -79,7 +79,7 @@ class TextToVector:
                 ):
                     operator_list[reserve_index] = _RESERVE_PAD
                 else:
-                    operator_list[reserve_index] =  VOCABULARYL[word.lower()]
+                    operator_list[reserve_index] = VOCABULARYL[word.lower()]
                 reserve_index += 1
 
             for lindex in range(reserve_index, self.features):

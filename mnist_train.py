@@ -93,12 +93,11 @@ for epoch in range(num_epochs):
     for batch_idx, (features, targets) in enumerate(train_loader):
         # NOTE: Size([256, 784])
         features = features.view(-1, 28 * 28).to(device)
-        print("features size:", features.size())
         # NOTE: target is 0..10
         targets = targets.to(device)
         logits, probas = model(features)
 
-        print("logits ", logits.size(), "targets ",targets.size());
+        print("logits ", logits.size(), "targets ", targets.size())
         cost = F.cross_entropy(logits, targets).to(device)
         optimizer.zero_grad()
 
