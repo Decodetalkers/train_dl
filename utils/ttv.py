@@ -1,6 +1,7 @@
 # This is a library to make text to vectors
 # TODO: let me read the book
 
+from numpy import dtype
 from collections.abc import Iterable, Hashable
 from typing import List, Dict, Tuple
 import pandas as pd
@@ -40,7 +41,8 @@ def _vocabulary_init():
 _vocabulary_init()
 
 _RESERVE_PAD = VOCABULARYL["<pad>"]
-_VOCABULARY_LEN = len(VOCABULARYL)
+VOCABULARY_LEN = len(VOCABULARYL)
+
 
 class TextToVector:
     batch_size: int
@@ -67,7 +69,7 @@ class TextToVector:
         step = end - self.current
         start_current = 0
         next_list = torch.zeros(step, self.features, dtype=torch.int)
-        next_label = torch.zeros(step)
+        next_label = torch.zeros(step, dtype=torch.int64)
         while start_current < step:
             _index, row = next(self._iter)  # ty:ignore[invalid-argument-type]
             review: str = row["review"]

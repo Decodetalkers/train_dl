@@ -4,13 +4,13 @@ import torch.nn.functional as F
 import time
 import random
 import pandas as pd
-from utils.ttv import VOCABULARYL, TextToVector, SENTIMENT_FEATURES
+from utils.ttv import VOCABULARYL,VOCABULARY_LEN, TextToVector, SENTIMENT_FEATURES
 
 torch.backends.cudnn.deterministic = True
 
 RANDOM_SEED = 123
 LEARNING_RATE = 0.005
-BATCH_SIZE: int = 10
+BATCH_SIZE: int = 30
 NUM_EPOCHS = 15
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -38,10 +38,10 @@ class MyLstm(torch.nn.Module):
 
         self.fc = torch.nn.Linear(hidden_dim, output_dim)
 
+    # NOTE: Size([num_features, batch_size])
     def forward(self, text: torch.Tensor):
         embedded = self.embedding(text)
         _output, (hidden, _cell) = self.rnn(embedded)
-        print("hidden: ", hidden.size())
 
         hidden.squeeze_(0)
 
@@ -53,7 +53,7 @@ class MyLstm(torch.nn.Module):
 torch.manual_seed(RANDOM_SEED)
 
 model = MyLstm(
-    input_dim=DATA_LOADER.features,
+    input_dim=VOCABULARY_LEN,
     embendding_dim=EMBEDDING_DIM,
     hidden_dim=HIDDEN_DIM,
     output_dim=SENTIMENT_FEATURES,
@@ -82,7 +82,6 @@ for epoch in range(NUM_EPOCHS):
     model.train()
     for batch_idx, (data, labels) in enumerate(DATA_LOADER):
         data = data.to(DEVICE).transpose_(0, 1)
-        print("data: ", data.size())
         logits = model(data)
         loss = F.cross_entropy(logits, labels.to(DEVICE))
 
