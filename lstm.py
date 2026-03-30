@@ -81,6 +81,7 @@ start_time = time.time()
 
 for epoch in range(NUM_EPOCHS):
     model.train()
+    DATA_LOADER.reset()
     for batch_idx, (data, labels) in enumerate(DATA_LOADER):
         data = data.to(DEVICE).transpose_(0, 1)
         logits = model(data)
