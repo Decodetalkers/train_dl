@@ -52,12 +52,18 @@ class TextToVector:
     max_len: int
     features = _MAX_WORD_LEN
     _iter = Iterable[Tuple[Hashable, pd.Series]]
+    dataset: pd.DataFrame
 
     def __init__(self, dataset: pd.DataFrame, batch_size: int):
+        self.dataset = dataset
         self.current = 0
         self.batch_size = batch_size
         self.max_len = dataset.shape[0]
         self._iter = dataset.iterrows()
+
+    def reset(self):
+        self.current = 0
+        self._iter = self.dataset.iterrows()
 
     def __iter__(self):
         return self

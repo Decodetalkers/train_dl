@@ -10,7 +10,7 @@ torch.backends.cudnn.deterministic = True
 
 RANDOM_SEED = 123
 LEARNING_RATE = 0.005
-BATCH_SIZE: int = 30
+BATCH_SIZE: int = 10
 NUM_EPOCHS = 15
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -20,7 +20,7 @@ NUM_CLASSES = 2
 
 df = pd.read_csv("./misc/movie_data.csv")
 
-DATA_LOADER = TextToVector(dataset=df, batch_size=BATCH_SIZE)
+DATA_LOADER = TextToVector(dataset=df.head(100), batch_size=BATCH_SIZE)
 
 
 class MyLstm(torch.nn.Module):
@@ -64,12 +64,13 @@ optimizer = torch.optim.Adam(model.parameters(), lr=0.005)
 
 def compute_accuracy(model: MyLstm, data_loader: TextToVector, device: torch.device) -> torch.Tensor:
     with torch.no_grad():
-        correct_pred, num_examples = torch.Tensor(0).to(device), torch.Tensor(0).to(device)
+        correct_pred, num_examples = torch.Tensor([0]).to(device), torch.Tensor([0]).to(device)
+        data_loader.reset()
         for i, (features, targets) in enumerate(data_loader):
             features = features.to(device)
             targets = targets.float().to(device)
 
-            logits = model(features)
+            logits = model(features.transpose_(0, 1))
             _, predicted_labels = torch.max(logits, 1)
             num_examples += targets.size(0)
             correct_pred += (predicted_labels == targets).sum()
@@ -95,6 +96,7 @@ for epoch in range(NUM_EPOCHS):
                 f"Batch {batch_idx:03d}/{DATA_LOADER.max_len:03d} | "
                 f"Loss: {loss:.4f}"
             )
+
 
     with torch.set_grad_enabled(False):
         print(
