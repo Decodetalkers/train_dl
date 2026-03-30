@@ -12,7 +12,9 @@ _MISC_LIB = Path(__file__).parent.parent.resolve() / "misc/movie_data.csv"
 
 VOCABULARYL: Dict[str, int] = {"<unk>": 0}
 
-_Data = pd.read_csv(_MISC_LIB).head(1000)
+SENTIMENT_FEATURES = 2
+
+_Data = pd.read_csv(_MISC_LIB).head(50)
 
 _WordMatch = re.compile(r"[a-z\d]+")
 
@@ -33,12 +35,14 @@ _vocabulary_init()
 
 _VOCABULARY_LEN = len(VOCABULARYL)
 
+
 class TextToVector:
     batch_size: int
     vectors: torch.Tensor
     labels: List[int] = []
     current: int
     max_len: int
+    features = _VOCABULARY_LEN
     _iter = Iterable[Tuple[Hashable, pd.Series]]
 
     def __init__(self, dataset: pd.DataFrame, batch_size: int):
@@ -56,7 +60,7 @@ class TextToVector:
         end = min(self.current + self.batch_size, self.max_len)
         step = end - self.current
         start_current = 0
-        next_list = torch.zeros(step, _VOCABULARY_LEN, _VOCABULARY_LEN)
+        next_list = torch.zeros(step, _VOCABULARY_LEN, _VOCABULARY_LEN, dtype=torch.int)
         next_label = torch.zeros(step)
         while start_current < step:
             _index, row = next(self._iter)  # ty:ignore[invalid-argument-type]
