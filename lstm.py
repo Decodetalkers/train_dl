@@ -40,12 +40,15 @@ class MyLstm(torch.nn.Module):
 
     # NOTE: Size([num_features, batch_size])
     def forward(self, text: torch.Tensor):
+        # [num_features, batch_size, embendding_dim]
         embedded = self.embedding(text)
         _output, (hidden, _cell) = self.rnn(embedded)
-
+        # hidden_dim: [1, batch_size, hidden_dim]
         hidden.squeeze_(0)
+        # hidden_dim [batch_size, hidden_dim]
 
         output = self.fc(hidden)
+        # output [batch_size, output_dim]
 
         return output
 
@@ -65,7 +68,6 @@ optimizer = torch.optim.Adam(model.parameters(), lr=0.005)
 def compute_accuracy(model: MyLstm, data_loader: TextToVector, device: torch.device) -> torch.Tensor:
     with torch.no_grad():
         correct_pred, num_examples = torch.Tensor([0]).to(device), torch.Tensor([0]).to(device)
-        data_loader.reset()
         for i, (features, targets) in enumerate(data_loader):
             features = features.to(device)
             targets = targets.float().to(device)
@@ -81,7 +83,6 @@ start_time = time.time()
 
 for epoch in range(NUM_EPOCHS):
     model.train()
-    DATA_LOADER.reset()
     for batch_idx, (data, labels) in enumerate(DATA_LOADER):
         data = data.to(DEVICE).transpose_(0, 1)
         logits = model(data)

@@ -61,11 +61,10 @@ class TextToVector:
         self.max_len = dataset.shape[0]
         self._iter = dataset.iterrows()
 
-    def reset(self):
+    # Every time iter, reset it
+    def __iter__(self):
         self.current = 0
         self._iter = self.dataset.iterrows()
-
-    def __iter__(self):
         return self
 
     def __next__(self) -> Tuple[torch.Tensor, torch.Tensor]:
