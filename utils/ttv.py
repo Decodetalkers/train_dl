@@ -61,7 +61,10 @@ class TextToVector:
         self.max_len = dataset.shape[0]
         self._iter = dataset.iterrows()
 
-    # Every time iter, reset it
+    @property
+    def batch_len(self) -> int:
+        return self.max_len // self.batch_size
+
     def __iter__(self):
         self.current = 0
         self._iter = self.dataset.iterrows()

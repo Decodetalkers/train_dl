@@ -95,7 +95,7 @@ for epoch in range(NUM_EPOCHS):
         if not batch_idx % 50:
             print(
                 f"Epoch: {epoch + 1:03d}/{NUM_EPOCHS:03d} | "
-                f"Batch {batch_idx:03d}/{DATA_LOADER.max_len:03d} | "
+                f"Batch {batch_idx:03d}/{DATA_LOADER.batch_len:03d} | "
                 f"Loss: {loss:.4f}"
             )
 
