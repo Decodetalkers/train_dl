@@ -64,7 +64,7 @@ optimizer = torch.optim.Adam(model.parameters(), lr=0.005)
 
 def compute_accuracy(model: MyLstm, data_loader: TextToVector, device: torch.device):
     with torch.no_grad():
-        correct_pred, num_example = 0, 0
+        correct_pred, num_examples = torch.Tensor(0).to(device), torch.Tensor(0).to(device)
         for i, (features, targets) in enumerate(data_loader):
             features = features.to(device)
             targets = targets.float().to(device)
@@ -73,7 +73,7 @@ def compute_accuracy(model: MyLstm, data_loader: TextToVector, device: torch.dev
             _, predicted_labels = torch.max(logits, 1)
             num_examples += targets.size(0)
             correct_pred += (predicted_labels == targets).sum()
-    return correct_pred.float() / num_examples * 100.0  # ty:ignore[unresolved-attribute]
+        return correct_pred.float() / num_examples * 100.0
 
 
 start_time = time.time()
