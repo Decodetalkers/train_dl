@@ -62,7 +62,7 @@ model = MyLstm(
 optimizer = torch.optim.Adam(model.parameters(), lr=0.005)
 
 
-def compute_accuracy(model: MyLstm, data_loader: TextToVector, device: torch.device):
+def compute_accuracy(model: MyLstm, data_loader: TextToVector, device: torch.device) -> torch.Tensor:
     with torch.no_grad():
         correct_pred, num_examples = torch.Tensor(0).to(device), torch.Tensor(0).to(device)
         for i, (features, targets) in enumerate(data_loader):
@@ -99,9 +99,9 @@ for epoch in range(NUM_EPOCHS):
     with torch.set_grad_enabled(False):
         print(
             f"training accuracy: "
-            f"{compute_accuracy(model, DATA_LOADER, DEVICE):.2f}%"
+            f"{compute_accuracy(model, DATA_LOADER, DEVICE).item():.2f}%"
             f"\nvalid accuracy: "
-            f"{compute_accuracy(model, DATA_LOADER, DEVICE):.2f}%"
+            f"{compute_accuracy(model, DATA_LOADER, DEVICE).item():.2f}%"
         )
 
     print(f"Time elapsed: {(time.time() - start_time) / 60:.2f} min")
