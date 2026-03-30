@@ -20,7 +20,7 @@ NUM_CLASSES = 2
 
 df = pd.read_csv("./misc/movie_data.csv")
 
-DATA_LOADER = TextToVector(dataset=df.head(100), batch_size=BATCH_SIZE)
+DATA_LOADER = TextToVector(dataset=df, batch_size=BATCH_SIZE)
 
 
 class MyLstm(torch.nn.Module):
