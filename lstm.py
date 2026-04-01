@@ -89,6 +89,8 @@ for epoch in range(NUM_EPOCHS):
         loss = F.cross_entropy(logits, labels.to(DEVICE))
 
         optimizer.zero_grad()
+
+        loss.backward()
         optimizer.step()
 
         ### LOGGING
