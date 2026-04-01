@@ -20,7 +20,8 @@ NUM_CLASSES = 2
 
 df = pd.read_csv("./misc/movie_data.csv")
 
-DATA_LOADER = TextToVector(dataset=df, batch_size=BATCH_SIZE)
+TRAIN_LOADER = TextToVector(dataset=df.head(1000), batch_size=BATCH_SIZE)
+TEST_LOADER = TextToVector(dataset=df.tail(1000), batch_size=BATCH_SIZE)
 
 
 class MyLstm(torch.nn.Module):
@@ -91,7 +92,7 @@ start_time = time.time()
 
 for epoch in range(NUM_EPOCHS):
     model.train()
-    for batch_idx, (data, labels, text_length) in enumerate(DATA_LOADER):
+    for batch_idx, (data, labels, text_length) in enumerate(TRAIN_LOADER):
         data = data.to(DEVICE)
         logits = model(data, text_length)
         loss = F.cross_entropy(logits, labels.to(DEVICE))
@@ -105,16 +106,16 @@ for epoch in range(NUM_EPOCHS):
         if not batch_idx % 50:
             print(
                 f"Epoch: {epoch + 1:03d}/{NUM_EPOCHS:03d} | "
-                f"Batch {batch_idx:03d}/{DATA_LOADER.batch_len:03d} | "
+                f"Batch {batch_idx:03d}/{TRAIN_LOADER.batch_len:03d} | "
                 f"Loss: {loss:.4f}"
             )
 
     with torch.set_grad_enabled(False):
         print(
             f"training accuracy: "
-            f"{compute_accuracy(model, DATA_LOADER, DEVICE).item():.2f}%"
+            f"{compute_accuracy(model, TRAIN_LOADER, DEVICE).item():.2f}%"
             f"\nvalid accuracy: "
-            f"{compute_accuracy(model, DATA_LOADER, DEVICE).item():.2f}%"
+            f"{compute_accuracy(model, TEST_LOADER, DEVICE).item():.2f}%"
         )
 
     print(f"Time elapsed: {(time.time() - start_time) / 60:.2f} min")
