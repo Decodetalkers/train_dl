@@ -76,11 +76,11 @@ def compute_accuracy(
             torch.Tensor([0]).to(device),
             torch.Tensor([0]).to(device),
         )
-        for _i, (features, targets, _lens) in enumerate(data_loader):
+        for _i, (features, targets, len) in enumerate(data_loader):
             features = features.to(device)
             targets = targets.float().to(device)
 
-            logits = model(features.transpose(0, 1))
+            logits = model(features, len)
             _, predicted_labels = torch.max(logits, 1)
             num_examples += targets.size(0)
             correct_pred += (predicted_labels == targets).sum()
