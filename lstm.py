@@ -4,7 +4,7 @@ import torch.nn.functional as F
 import time
 import random
 import pandas as pd
-from utils.ttv import VOCABULARYL,VOCABULARY_LEN, TextToVector, SENTIMENT_FEATURES
+from utils.ttv import VOCABULARYL, VOCABULARY_LEN, TextToVector, SENTIMENT_FEATURES
 
 torch.backends.cudnn.deterministic = True
 
@@ -39,10 +39,13 @@ class MyLstm(torch.nn.Module):
         self.fc = torch.nn.Linear(hidden_dim, output_dim)
 
     # NOTE: Size([num_features, batch_size])
-    def forward(self, text: torch.Tensor):
+    def forward(self, text: torch.Tensor, text_length: torch.Tensor):
         # [num_features, batch_size, embendding_dim]
         embedded = self.embedding(text)
-        _output, (hidden, _cell) = self.rnn(embedded)
+        packed = torch.nn.utils.rnn.pack_padded_sequence(
+            embedded, text_length.to("cpu"), enforce_sorted=False
+        )
+        _output, (hidden, _cell) = self.rnn(packed)
         # hidden_dim: [1, batch_size, hidden_dim]
         hidden.squeeze_(0)
         # hidden_dim [batch_size, hidden_dim]
@@ -65,14 +68,19 @@ model = MyLstm(
 optimizer = torch.optim.Adam(model.parameters(), lr=0.005)
 
 
-def compute_accuracy(model: MyLstm, data_loader: TextToVector, device: torch.device) -> torch.Tensor:
+def compute_accuracy(
+    model: MyLstm, data_loader: TextToVector, device: torch.device
+) -> torch.Tensor:
     with torch.no_grad():
-        correct_pred, num_examples = torch.Tensor([0]).to(device), torch.Tensor([0]).to(device)
-        for i, (features, targets) in enumerate(data_loader):
+        correct_pred, num_examples = (
+            torch.Tensor([0]).to(device),
+            torch.Tensor([0]).to(device),
+        )
+        for _i, (features, targets) in enumerate(data_loader):
             features = features.to(device)
             targets = targets.float().to(device)
 
-            logits = model(features.transpose_(0, 1))
+            logits = model(features.transpose(0, 1))
             _, predicted_labels = torch.max(logits, 1)
             num_examples += targets.size(0)
             correct_pred += (predicted_labels == targets).sum()
@@ -83,9 +91,9 @@ start_time = time.time()
 
 for epoch in range(NUM_EPOCHS):
     model.train()
-    for batch_idx, (data, labels) in enumerate(DATA_LOADER):
-        data = data.to(DEVICE).transpose_(0, 1)
-        logits = model(data)
+    for batch_idx, (data, labels, text_length) in enumerate(DATA_LOADER):
+        data = data.to(DEVICE)
+        logits = model(data, text_length)
         loss = F.cross_entropy(logits, labels.to(DEVICE))
 
         optimizer.zero_grad()
@@ -100,7 +108,6 @@ for epoch in range(NUM_EPOCHS):
                 f"Batch {batch_idx:03d}/{DATA_LOADER.batch_len:03d} | "
                 f"Loss: {loss:.4f}"
             )
-
 
     with torch.set_grad_enabled(False):
         print(

@@ -17,9 +17,6 @@ SENTIMENT_FEATURES = 2
 
 _Data = pd.read_csv(_MISC_LIB)
 
-_WordMatch = re.compile(r"[a-z\d]+")
-
-
 _MAX_WORD_LEN = 0
 
 
@@ -30,7 +27,7 @@ def _vocabulary_init():
         content: str = row["review"]
         len = 0
         for word in re.split(r"[;,!?\\\/<>().\s]+", content):
-            if word.lower() not in VOCABULARYL and _WordMatch.fullmatch(word.lower()):
+            if word.lower() not in VOCABULARYL:
                 VOCABULARYL[word.lower()] = index
                 index += 1
             len += 1
@@ -44,6 +41,7 @@ _RESERVE_PAD = VOCABULARYL["<pad>"]
 VOCABULARY_LEN = len(VOCABULARYL)
 
 
+# TODO: short the size of the text
 class TextToVector:
     batch_size: int
     vectors: torch.Tensor
@@ -70,23 +68,22 @@ class TextToVector:
         self._iter = self.dataset.iterrows()
         return self
 
-    def __next__(self) -> Tuple[torch.Tensor, torch.Tensor]:
+    def __next__(self) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         if self.current == self.max_len:
             raise StopIteration
         end = min(self.current + self.batch_size, self.max_len)
         step = end - self.current
         start_current = 0
-        next_list = torch.zeros(step, self.features, dtype=torch.int)
-        next_label = torch.zeros(step, dtype=torch.int64)
+        next_list = torch.zeros(step, self.features, dtype=torch.int64)
+        next_label = torch.zeros(step, dtype=torch.long)
+        next_lens = torch.zeros(step, dtype=torch.long)
         while start_current < step:
             _index, row = next(self._iter)  # ty:ignore[invalid-argument-type]
             review: str = row["review"]
             reserve_index = 0
             operator_list = next_list[start_current]
             for word in re.split(r"[;,!?\\\/<>().\s]+", review):
-                if word.lower() not in VOCABULARYL or not _WordMatch.fullmatch(
-                    word.lower()
-                ):
+                if word.lower() not in VOCABULARYL:
                     operator_list[reserve_index] = _RESERVE_PAD
                 else:
                     operator_list[reserve_index] = VOCABULARYL[word.lower()]
@@ -95,8 +92,9 @@ class TextToVector:
             for lindex in range(reserve_index, self.features):
                 operator_list[lindex] = _RESERVE_PAD
             sentiment: int = row["sentiment"]
+            next_lens[start_current] = reserve_index
             next_label[start_current] = sentiment
             start_current += 1
 
         self.current = end
-        return (next_list, next_label)
+        return (next_list.transpose(0, 1), next_label, next_lens)
