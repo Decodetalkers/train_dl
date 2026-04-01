@@ -76,7 +76,7 @@ def compute_accuracy(
             torch.Tensor([0]).to(device),
             torch.Tensor([0]).to(device),
         )
-        for _i, (features, targets) in enumerate(data_loader):
+        for _i, (features, targets, _lens) in enumerate(data_loader):
             features = features.to(device)
             targets = targets.float().to(device)
 
