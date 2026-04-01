@@ -43,7 +43,7 @@ class MyLstm(torch.nn.Module):
         # [num_features, batch_size, embendding_dim]
         embedded = self.embedding(text)
         packed = torch.nn.utils.rnn.pack_padded_sequence(
-            embedded, text_length.to("cpu"), enforce_sorted=False
+            embedded, text_length.to("cpu")
         )
         _output, (hidden, _cell) = self.rnn(packed)
         # hidden_dim: [1, batch_size, hidden_dim]

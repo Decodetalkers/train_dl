@@ -41,7 +41,6 @@ _RESERVE_PAD = VOCABULARYL["<pad>"]
 VOCABULARY_LEN = len(VOCABULARYL)
 
 
-# TODO: short the size of the text
 class TextToVector:
     batch_size: int
     vectors: torch.Tensor
@@ -77,24 +76,32 @@ class TextToVector:
         next_list = torch.zeros(step, self.features, dtype=torch.int64)
         next_label = torch.zeros(step, dtype=torch.long)
         next_lens = torch.zeros(step, dtype=torch.long)
+        word_list: List[Tuple[List[str], int]] = []
         while start_current < step:
             _index, row = next(self._iter)  # ty:ignore[invalid-argument-type]
             review: str = row["review"]
+            sentiment: int = row["sentiment"]
+            words = re.split(r"[;,!?\\\/<>().\s]+", review)
+            index = 0
+            for i in range(0, len(word_list)):
+                if len(words) > len(word_list[i][0]):
+                    break
+                index += 1
+            word_list.insert(index, (words, sentiment))
+            start_current += 1
+        for index, (words, sentiment) in enumerate(word_list):
+            operator_list = next_list[index]
             reserve_index = 0
-            operator_list = next_list[start_current]
-            for word in re.split(r"[;,!?\\\/<>().\s]+", review):
+            for word in words:
                 if word.lower() not in VOCABULARYL:
                     operator_list[reserve_index] = _RESERVE_PAD
                 else:
                     operator_list[reserve_index] = VOCABULARYL[word.lower()]
                 reserve_index += 1
-
             for lindex in range(reserve_index, self.features):
                 operator_list[lindex] = _RESERVE_PAD
-            sentiment: int = row["sentiment"]
-            next_lens[start_current] = reserve_index
-            next_label[start_current] = sentiment
-            start_current += 1
+            next_label[index] = sentiment
+            next_lens[index] = len(words)
 
         self.current = end
         return (next_list.transpose(0, 1), next_label, next_lens)
