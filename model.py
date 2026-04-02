@@ -4,6 +4,9 @@ from typing import Literal
 
 # The network only one level
 class Perception:
+    # The base DNN
+    # With no norch
+    # But even no active function
     def __init__(self, num_features: int):
         self.num_features = num_features
         self.weights = np.zeros((num_features, 1), dtype=np.float16)

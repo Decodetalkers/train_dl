@@ -52,7 +52,7 @@ class SoftmaxRegission(torch.nn.Module):
         ).to(device)
         self.act = torch.nn.Softmax(dim=1).to(device)
 
-    # NOTE: the size of x should be Size([x, num_features])
+    # NOTE: the size of x should be Size([batch_size, num_features])
     def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         logits: torch.Tensor = self.seq(x)
         probas = self.act(logits)
