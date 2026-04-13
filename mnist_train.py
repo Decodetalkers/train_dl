@@ -75,7 +75,7 @@ def compute_accuracy(
     for features, targets in data_loader:
         features: torch.Tensor = features.view(-1, 28 * 28).to(device)
         targets = targets.to(device)
-        logits, probas = model(features)
+        _logits, probas = model(features)
         _, predicted_labels = torch.max(probas, 1)
         num_examples += targets.size(0)
 
